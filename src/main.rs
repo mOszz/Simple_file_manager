@@ -1,10 +1,57 @@
 pub mod manager;
 
+use std::io;
+use std::io::{stdout, Write};
 use manager::{Operations, FileManager};
 
+fn app_running() {
+    let prompt_char = '🦀';
+
+    print!("{} ", prompt_char);
+    stdout().flush().unwrap();
+}
+
+fn read_user_input() -> String {
+    let mut input = String::new();
+    io::stdin().read_line(&mut input)
+        .expect("Failed to read in command");
+
+    return input.trim().to_string();
+}
+
+fn parse_user_input(input: &str) -> Vec<String> {
+    input.trim().split_whitespace().map(String::from).collect()
+}
+
+fn identify_args(words: Vec<String>) -> (String, Vec<String>) {
+    if words.is_empty() {
+        return (String::new(), Vec::new());
+    }
+    let command = words[0].clone();
+    let args = words[1..].to_vec();
+    (command, args)
+}
+
 fn main() {
-    let file_manager = FileManager::new();
-    file_manager.list_files("src").expect("TODO: panic message");
+    loop {
+        app_running();
+        let file_manager = FileManager::new();
+
+        let user_input = read_user_input();
+        let parsed_input = parse_user_input(&user_input);
+        let (command, args) = identify_args(parsed_input);
+        match command.as_str() {
+            "list" => {
+                file_manager.list_files(args[0].as_str())
+            },
+            _ => {
+                println!("Command didn't exist");
+                Ok(())
+            }
+        }
+    }
+
+    //file_manager.list_files("src").expect("TODO: panic message");
     //file_manager.create_file("test.txt");
     //file_manager.create_file("C:/Users/victo/Documents/test.txt");
     //file_manager.read_file("C:/Users/victo/Documents/dev/rust/simple_file_manager/src/main.rs");
