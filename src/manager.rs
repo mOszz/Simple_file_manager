@@ -8,6 +8,7 @@ pub trait Operations {
     fn list_files(&self, read_dir: &str) -> std::io::Result<()>;
     fn read_file(&self, file_path: &str) -> std::io::Result<()>;
     fn write_file(&self, file_name: &str, file_content: &str) -> std::io::Result<()>;
+    fn copy_file(&self, file: &str, destination: &str) -> std::io::Result<()>;
 }
 
 pub struct FileManager;
@@ -40,6 +41,11 @@ impl Operations for FileManager {
 
     fn write_file(&self, file_name: &str, file_content: &str) -> std::io::Result<()> {
         fs::write(file_name, file_content)?;
+        Ok(())
+    }
+
+    fn copy_file(&self, file: &str, destination: &str) -> std::io::Result<()> {
+        fs::copy(file, destination)?;
         Ok(())
     }
 }
@@ -76,5 +82,11 @@ mod tests {
     fn test_write_file() {
         let file_manager = FileManager;
         assert!(file_manager.write_file("test_file.txt", "test content").is_ok());
+    }
+
+    #[test]
+    fn test_copy_file() {
+        let file_manager = FileManager;
+        assert!(file_manager.copy_file("test_file.txt", "src/test.txt").is_ok());
     }
 }
