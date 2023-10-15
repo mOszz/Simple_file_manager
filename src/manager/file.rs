@@ -10,30 +10,56 @@ impl FileHandler {
     }
 
     pub fn read(&self, file_path: &str) -> std::io::Result<()> {
-        let contents = read_to_string(file_path)
-            .expect("Didn't able to read the file");
-        println!("{}", contents);
-        Ok(())
+        match read_to_string(file_path) {
+            Ok(contents) => {
+                println!("{}", contents);
+                Ok(())
+            },
+            Err(err) => {
+                eprintln!("Failed to read the file: {}", err);
+                Err(err)
+            }
+        }
     }
 
     pub fn write(&self, file_name: &str, file_content: &str) -> std::io::Result<()> {
-        fs::write(file_name, file_content)?;
-        Ok(())
+        match fs::write(file_name, file_content) {
+            Ok(_) => Ok(()),
+            Err(err) => {
+                eprintln!("Failed to write file with filename '{}':{}", file_name, err);
+                Err(err)
+            }
+        }
     }
 
     pub fn copy(&self, file: &str, destination: &str) -> std::io::Result<()> {
-        fs::copy(file, destination)?;
-        Ok(())
+        match fs::copy(file, destination) {
+            Ok(_) => Ok(()),
+            Err(err) => {
+                eprintln!("Failed to copy file '{}' to '{}':{}", file, destination, err);
+                Err(err)
+            }
+        }
     }
 
     pub fn rename_or_move(&self, file_name: &str, new_file_name: &str) -> std::io::Result<()> {
-        fs::rename(file_name, new_file_name)?;
-        Ok(())
+        match fs::rename(file_name, new_file_name) {
+            Ok(_) => Ok(()),
+            Err(err) => {
+                eprintln!("Failed to rename or move file '{}':{}", file_name, err);
+                Err(err)
+            }
+        }
     }
 
     pub fn delete(&self, file_name: &str) -> std::io::Result<()> {
-        fs::remove_file(file_name)?;
-        Ok(())
+        match fs::remove_file(file_name) {
+            Ok(_) => Ok(()),
+            Err(err) => {
+                eprintln!("Failed to remove file '{}':{}", file_name, err);
+                Err(err)
+            }
+        }
     }
 }
 
@@ -48,7 +74,7 @@ mod tests {
     #[test]
     fn test_read_file() {
         let file_handler = FileHandler;
-        assert!(file_handler.read("./test_file.txt").is_ok());
+        assert!(file_handler.read("./src/main.rs").is_ok());
     }
     #[test]
     fn test_write_file() {
