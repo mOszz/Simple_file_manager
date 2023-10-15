@@ -4,7 +4,7 @@ use manager::{Operations, FileManager};
 
 fn main() {
     let file_manager = FileManager;
-
+    file_manager.list_files("./");
     // match file_manager.create_file("file.txt") {
     //     Ok(()) => println!("File created successfully."),
     //     Err(e) => panic!("File creation failed: {:?}", e),
