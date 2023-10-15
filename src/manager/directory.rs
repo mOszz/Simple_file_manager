@@ -1,8 +1,12 @@
 use std::fs::{create_dir, read_dir, remove_dir_all};
 
+/// DirectoryHandler provides methods to create, list and delete directories.
 pub struct DirectoryHandler;
 
 impl DirectoryHandler {
+    /// Creates a new directory with the specified directory name.
+    /// # Arguments
+    /// * `dir_name` - A string slice that holds the name of the directory to be created.
     pub fn create(&self, dir_name: &str) -> std::io::Result<()> {
         match create_dir(dir_name) {
             Ok(_) => Ok(()),
@@ -13,6 +17,9 @@ impl DirectoryHandler {
         }
     }
 
+    /// Lists the files and directories in the specified directory and prints their paths to the standard output.
+    /// # Arguments
+    /// * `dir` - A string slice that holds the path of the directory to be listed.
     pub fn list(&self, dir: &str) -> std::io::Result<()> {
         match read_dir(dir) {
             Ok(entries) => {
@@ -28,6 +35,9 @@ impl DirectoryHandler {
         }
     }
 
+    /// Deletes a directory with the specified directory name.
+    /// # Arguments
+    /// * `dir_name` - A string slice that holds the name of the directory to be deleted.
     pub fn delete(&self, dir_name: &str) -> std::io::Result<()> {
         match remove_dir_all(dir_name) {
             Ok(_) => Ok(()),
