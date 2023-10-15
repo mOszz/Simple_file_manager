@@ -1,6 +1,5 @@
 use std::fs;
 use std::fs::{create_dir, File, read_dir, read_to_string};
-use std::io::Write;
 
 pub trait Operations {
     fn create_file(&self, file_name: &str) -> std::io::Result<()>;
@@ -10,6 +9,8 @@ pub trait Operations {
     fn write_file(&self, file_name: &str, file_content: &str) -> std::io::Result<()>;
     fn copy_file(&self, file: &str, destination: &str) -> std::io::Result<()>;
     fn rename_or_move_file(&self, file_name: &str, new_file_name: &str) -> std::io::Result<()>;
+    fn delete_file(&self, file_name: &str) -> std::io::Result<()>;
+    fn delete_directory(&self, dir_name: &str) -> std::io::Result<()>;
 }
 
 pub struct FileManager;
@@ -54,6 +55,16 @@ impl Operations for FileManager {
         fs::rename(file_name, new_file_name)?;
         Ok(())
     }
+
+    fn delete_file(&self, file_name: &str) -> std::io::Result<()> {
+        fs::remove_file(file_name)?;
+        Ok(())
+    }
+
+    fn delete_directory(&self, dir_name: &str) -> std::io::Result<()> {
+        fs::remove_dir_all(dir_name)?;
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -96,8 +107,19 @@ mod tests {
         assert!(file_manager.copy_file("test_file.txt", "src/test.txt").is_ok());
     }
     #[test]
-    fn test_rename_file() {
+    fn test_rename_or_move_file() {
         let file_manager = FileManager;
         assert!(file_manager.rename_or_move_file("new_test_file.txt", "src/new_test_file.txt").is_ok());
+    }
+    #[test]
+    fn test_delete_file() {
+        let file_manager = FileManager;
+        assert!(file_manager.delete_file("test_file.txt").is_ok());
+    }
+
+    #[test]
+    fn test_delete_directory() {
+        let file_manager = FileManager;
+        assert!(file_manager.delete_directory("./dir_name").is_ok());
     }
 }
