@@ -39,16 +39,20 @@ fn main() {
 
         let user_input = read_user_input();
         let parsed_input = parse_user_input(&user_input);
-        let (command, args) = identify_args(parsed_input);
+        let (command, mut args) = identify_args(parsed_input);
         match command.as_str() {
             "list" => {
-                file_manager.list_files(args[0].as_str())
+                if args[0].is_empty() {
+                    args[0] = String::from("./");
+                }
+                println!("{}", args[0]);
+                //file_manager.list_files(args[0].as_str());
             },
             _ => {
                 println!("Command didn't exist");
-                Ok(())
+                //Ok(());
             }
-        }
+        };
     }
 
     //file_manager.list_files("src").expect("TODO: panic message");
