@@ -1,8 +1,11 @@
 pub mod manager;
+pub mod command;
 
+use std::error::Error;
 use std::io;
 use std::io::{stdout, Write};
 use manager::{Operations, FileManager};
+use command::Command;
 
 fn app_running() {
     let prompt_char = '🦀';
@@ -32,23 +35,50 @@ fn identify_args(words: Vec<String>) -> (String, Vec<String>) {
     (command, args)
 }
 
+fn execute_command(command: &str, args: Vec<String>, commands: &Vec<Command>) {
+    if let Some(cmd) = commands.iter().find(|cmd| cmd.command == command) {
+        match (cmd.action)(args) {
+            Ok(_) => {
+                println!("Command executed successfully");
+            }
+            Err(err) => {
+                eprintln!("Command failed: {}", err);
+            }
+        }
+    } else {
+        println!("Command not found");
+    }
+}
+
+fn list_files_action(args: Vec<String>) -> Result<(), Box<dyn Error>> {
+    let file_manager = FileManager::new();
+    match file_manager.list_files("/.") {
+        Ok(_) => Ok(()),
+        Err(err) => Err(Box::new(err)),
+    }
+}
+
 fn main() {
+    let commands: Vec<Command> = vec![
+        Command {
+            name: "List".to_string(),
+            command: "l".to_string(),
+            args: vec![String::from("./")],
+            description: "Command to list all directory or specific one".to_string(),
+            action: list_files_action,
+        },
+
+
+    ];
+
     loop {
         app_running();
-        let file_manager = FileManager::new();
 
         let user_input = read_user_input();
         let parsed_input = parse_user_input(&user_input);
         let (command, args) = identify_args(parsed_input);
-        match command.as_str() {
-            "list" => {
-                file_manager.list_files(args[0].as_str())
-            },
-            _ => {
-                println!("Command didn't exist");
-                Ok(())
-            }
-        }
+
+        execute_command(&command, args, &commands);
     }
 
     //file_manager.list_files("src").expect("TODO: panic message");
