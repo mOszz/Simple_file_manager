@@ -1,17 +1,18 @@
-use std::error::Error;
-use std::io;
+use std::{io, process};
 use crate::manager::{FileManager, Operations};
+
+type CommandAction = fn(&FileManager, &str) -> io::Result<()>;
 
 pub struct Command {
     pub name: String,
     pub command: String,
     pub args: (Vec<String>, bool),
     pub description: String,
-    pub action: fn(Vec<String>) -> Result<(), Box<dyn Error>>,
+    pub action: CommandAction,
 }
 
 impl Command {
-    pub fn new(name: String, command: String, args: (Vec<String>, bool), description: String, action: fn(Vec<String>) -> Result<(), Box<dyn Error>>) -> Self {
+    pub fn new(name: String, command: String, args: (Vec<String>, bool), description: String, action: CommandAction) -> Self {
         Command {
             name,
             command,
@@ -21,6 +22,11 @@ impl Command {
         }
     }
 
+    /// Reads a line of user input from the standard input.
+    ///
+    /// # Returns
+    /// A `String` containing the user input after trimming leading and trailing whitespaces.
+    ///
     pub fn read_user_input() -> String {
         let mut input = String::new();
         io::stdin().read_line(&mut input)
@@ -29,10 +35,26 @@ impl Command {
         input.trim().to_string()
     }
 
+    /// Parses a string into a vector of strings by splitting on whitespaces.
+    ///
+    /// # Arguments
+    /// * `input` - A string to be parsed.
+    ///
+    /// # Returns
+    /// A `Vec<String>` containing the parsed words.
+    ///
     pub fn parse_user_input(input: &str) -> Vec<String> {
         input.trim().split_whitespace().map(String::from).collect()
     }
 
+    /// Identifies the command and its arguments from a vector of words.
+    ///
+    /// # Arguments
+    /// * `words` - A vector of strings representing words.
+    ///
+    /// # Returns
+    /// A tuple containing the command and its arguments as a `String` and a `Vec<String>` respectively.
+    ///
     pub fn identify_args(words: Vec<String>) -> (String, Vec<String>) {
         if words.is_empty() {
             return (String::new(), Vec::new());
@@ -42,41 +64,55 @@ impl Command {
         (command, args)
     }
 
+    /// Executes a command with the given arguments and Command instances.
+    ///
+    /// # Arguments
+    ///
+    /// * `command` - A string representing the command to be executed.
+    /// * `args` - A vector of strings representing the command arguments.
+    /// * `commands` - A reference to a vector of Command instances.
+    ///
     pub fn execute_command(command: &str, args: Vec<String>, commands: &Vec<Command>) {
+        let fm = FileManager::new();
         if let Some(cmd) = commands.iter().find(|cmd| cmd.command == command) {
             let (expected_args, need_args) = &cmd.args;
-            if !need_args {
+            if *need_args {
                 if args.len() != expected_args.len() {
                     eprintln!("Usage: {} {}", cmd.command, expected_args.join(" "));
                     return;
                 }
             }
-
-            match (cmd.action)(args) {
-                Ok(_) => {
-                    println!("Command executed successfully");
-                }
-                Err(err) => {
-                    eprintln!("Command failed: {}", err);
-                }
-            }
-        } else {
+            Self::command_action(args, &fm, cmd);
+        } else if command == "exit" {
+            process::exit(0);
+        } 
+        else {
             println!("Command not found");
         }
     }
 
-    pub fn list_files_action(args: Vec<String>) -> Result<(), Box<dyn Error>> {
-        let file_manager = FileManager::new();
-
+    /// Executes a command with the given arguments, FileManager instance, and Command.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - A vector of strings representing the command arguments.
+    /// * `fm` - A reference to a FileManager instance.
+    /// * `cmd` - A reference to a Command instance.
+    ///
+    fn command_action(args: Vec<String>, fm: &FileManager, cmd: &Command) {
         let main_args = if args.len() > 0 {
             args[0].clone()
         } else {
             "./".to_string()
         };
 
-        match file_manager.list_files(&main_args) {
-            Ok(_) => Ok(()),
-            Err(err) => Err(Box::new(err)),
+        match (cmd.action)(&fm, &*main_args) {
+            Ok(_) => {
+                println!("Command executed successfully");
+            }
+            Err(err) => {
+                eprintln!("Command failed: {}", err);
+            }
         }
     }
 }

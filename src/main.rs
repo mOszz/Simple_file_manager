@@ -17,9 +17,16 @@ fn main() {
         Command {
             name: "List".to_string(),
             command: "l".to_string(),
-            args: (vec![String::from("<directory>")], true),
+            args: (vec![String::from("<directory>")], false),
             description: "Command to list all directory or specific one".to_string(),
-            action: Command::list_files_action,
+            action: FileManager::list_files,
+        },
+        Command {
+            name: "Create File".to_string(),
+            command: "cf".to_string(),
+            args: (vec![String::from("<file name>")], true),
+            description: "Command to create a file".to_string(),
+            action: FileManager::create_file,
         },
     ];
 
