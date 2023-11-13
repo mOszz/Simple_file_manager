@@ -18,42 +18,64 @@ fn main() {
             command: "l".to_string(),
             args: (vec![String::from("<directory>")], false),
             description: "Command to list all directory or specific one".to_string(),
-            action: FileManager::list_files,
+            action: Box::new(|fm, args| FileManager::list_files(fm, &args[0])),
         },
         Command {
             name: "Create File".to_string(),
             command: "file".to_string(),
             args: (vec![String::from("<file name>")], true),
             description: "Command to create a file".to_string(),
-            action: FileManager::create_file,
+            action: Box::new(|fm, args| FileManager::create_file(fm, &args[0])),
         },
         Command {
             name: "Create Directory".to_string(),
             command: "dir".to_string(),
             args: (vec![String::from("<directory name>")], true),
             description: "Command to create a directory".to_string(),
-            action: FileManager::create_directory,
+            action: Box::new(|fm, args| FileManager::create_directory(fm, &args[0])),
         },
         Command {
             name: "Read File".to_string(),
             command: "read".to_string(),
             args: (vec![String::from("<file name>")], true),
             description: "Command to read a file".to_string(),
-            action: FileManager::read_file,
+            action: Box::new(|fm, args| FileManager::read_file(fm, &args[0])),
         },
         Command {
             name: "Delete File".to_string(),
             command: "delf".to_string(),
             args: (vec![String::from("<file name>")], true),
             description: "Command to delete a file".to_string(),
-            action: FileManager::delete_file,
+            action: Box::new(|fm, args| FileManager::delete_file(fm, &args[0])),
         },
         Command {
             name: "Delete Directory".to_string(),
             command: "deld".to_string(),
             args: (vec![String::from("<directory name>")], true),
             description: "Command to delete a directory".to_string(),
-            action: FileManager::delete_directory,
+            action: Box::new(|fm, args| FileManager::delete_directory(fm, &args[0])),
+        },
+        //Multiple args commands
+        Command {
+            name: "Write file".to_string(),
+            command: "write".to_string(),
+            args: (vec![String::from("<file name>"), String::from("<content>")], true),
+            description: "Command to write in a file".to_string(),
+            action: Box::new(|fm, args| FileManager::write_file(fm, &args[0], &args[1])),
+        },
+        Command {
+            name: "Copy file".to_string(),
+            command: "copy".to_string(),
+            args: (vec![String::from("<file name>"), String::from("<destination>")], true),
+            description: "Command to copy a file".to_string(),
+            action: Box::new(|fm, args| FileManager::copy_file(fm, &args[0], &args[1])),
+        },
+        Command {
+            name: "Rename or Move".to_string(),
+            command: "move".to_string(),
+            args: (vec![String::from("<file name>"), String::from("<new file name>")], true),
+            description: "Command to rename or move a file".to_string(),
+            action: Box::new(|fm, args| FileManager::rename_or_move_file(fm, &args[0], &args[1])),
         },
     ];
 
@@ -68,11 +90,4 @@ fn main() {
     }
 }
 
-    //file_manager.write_file("C:/Users/victor/Documents/dev/rust/simple_file_manager/test.txt", "udidhbdi");
-    //file_manager.copy_file("test.txt", "src/test.txt");
-    //file_manager.rename_or_move_file("dddd", "dddd");
-    //file_manager.delete_file("sdf");
-    //file_manager.create_directory("./src");
-    //file_manager.list_files("/toto/failed test");
-    //file_manager.delete_file("./test/delete/folder");
 

@@ -1,8 +1,8 @@
 use std::{io, process};
 use crate::manager::{FileManager, Operations};
 
-type CommandAction = fn(&FileManager, &str) -> io::Result<()>;
-
+//type CommandAction = fn(&FileManager, &str) -> io::Result<()>;
+type CommandAction = Box<dyn Fn(&FileManager, Vec<String>) -> io::Result<()>>;
 pub struct Command {
     pub name: String,
     pub command: String,
@@ -99,14 +99,11 @@ impl Command {
     /// * `fm` - A reference to a FileManager instance.
     /// * `cmd` - A reference to a Command instance.
     ///
-    fn command_action(args: Vec<String>, fm: &FileManager, cmd: &Command) {
-        let main_args = if args.len() > 0 {
-            args[0].clone()
-        } else {
-            "./".to_string()
-        };
-
-        match (cmd.action)(&fm, &*main_args) {
+    fn command_action(mut args: Vec<String>, fm: &FileManager, cmd: &Command) {
+        if args.len() < 1 {
+            args.push("./".to_string());
+        }
+        match (cmd.action)(&fm, args) {
             Ok(_) => {
                 println!("Command executed successfully");
             }
