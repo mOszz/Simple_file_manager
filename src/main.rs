@@ -1,7 +1,5 @@
 pub mod manager;
 pub mod command;
-
-use std::error::Error;
 use std::io::{stdout, Write};
 use manager::{Operations, FileManager};
 use command::Command;
@@ -14,6 +12,7 @@ fn app_running() {
 
 fn main() {
     let commands: Vec<Command> = vec![
+        //Single arg commands
         Command {
             name: "List".to_string(),
             command: "l".to_string(),
@@ -23,10 +22,38 @@ fn main() {
         },
         Command {
             name: "Create File".to_string(),
-            command: "cf".to_string(),
+            command: "file".to_string(),
             args: (vec![String::from("<file name>")], true),
             description: "Command to create a file".to_string(),
             action: FileManager::create_file,
+        },
+        Command {
+            name: "Create Directory".to_string(),
+            command: "dir".to_string(),
+            args: (vec![String::from("<directory name>")], true),
+            description: "Command to create a directory".to_string(),
+            action: FileManager::create_directory,
+        },
+        Command {
+            name: "Read File".to_string(),
+            command: "read".to_string(),
+            args: (vec![String::from("<file name>")], true),
+            description: "Command to read a file".to_string(),
+            action: FileManager::read_file,
+        },
+        Command {
+            name: "Delete File".to_string(),
+            command: "delf".to_string(),
+            args: (vec![String::from("<file name>")], true),
+            description: "Command to delete a file".to_string(),
+            action: FileManager::delete_file,
+        },
+        Command {
+            name: "Delete Directory".to_string(),
+            command: "deld".to_string(),
+            args: (vec![String::from("<directory name>")], true),
+            description: "Command to delete a directory".to_string(),
+            action: FileManager::delete_directory,
         },
     ];
 
@@ -40,10 +67,7 @@ fn main() {
         Command::execute_command(&command, args, &commands);
     }
 }
-    //file_manager.list_files("src").expect("TODO: panic message");
-    //file_manager.create_file("test.txt");
-    //file_manager.create_file("C:/Users/victor/Documents/test.txt");
-    //file_manager.read_file("C:/Users/victor/Documents/dev/rust/simple_file_manager/src/main.rs");
+
     //file_manager.write_file("C:/Users/victor/Documents/dev/rust/simple_file_manager/test.txt", "udidhbdi");
     //file_manager.copy_file("test.txt", "src/test.txt");
     //file_manager.rename_or_move_file("dddd", "dddd");
