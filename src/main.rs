@@ -10,7 +10,7 @@ fn app_running() {
     stdout().flush().unwrap();
 }
 
-fn main() {
+fn load_command() -> Vec<Command> {
     let commands: Vec<Command> = vec![
         //Single arg commands
         Command {
@@ -78,6 +78,11 @@ fn main() {
             action: Box::new(|fm, args| FileManager::rename_or_move_file(fm, &args[0], &args[1])),
         },
     ];
+    commands
+}
+
+fn main() {
+    let commands = load_command();
 
     loop {
         app_running();
