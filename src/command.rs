@@ -105,7 +105,7 @@ impl Command {
         }
         match (cmd.action)(&fm, args) {
             Ok(_) => {
-                println!("Command executed successfully");
+                //println!("Command executed successfully");
             }
             Err(err) => {
                 eprintln!("Command failed: {}", err);

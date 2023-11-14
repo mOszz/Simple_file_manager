@@ -1,6 +1,7 @@
 mod file;
 mod directory;
 
+use std::env;
 use file::FileHandler;
 use directory::DirectoryHandler;
 
@@ -15,6 +16,7 @@ pub trait Operations {
     fn rename_or_move_file(&self, file_name: &str, new_file_name: &str) -> std::io::Result<()>;
     fn delete_file(&self, file_name: &str) -> std::io::Result<()>;
     fn delete_directory(&self, dir_name: &str) -> std::io::Result<()>;
+    fn change_directory(&self, dir_name: &str) -> std::io::Result<()>;
 }
 
 pub struct FileManager {
@@ -65,5 +67,15 @@ impl Operations for FileManager {
 
     fn delete_directory(&self, dir_name: &str) -> std::io::Result<()> {
         self.directory_handler.delete(dir_name)
+    }
+
+    fn change_directory(&self, dir_name: &str) -> std::io::Result<()> {
+        match env::set_current_dir(dir_name) {
+            Ok(_) => Ok(()),
+            Err(err) => {
+                eprintln!("Failed to change current directory '{}':{}", dir_name, err);
+                Err(err)
+            }
+        }
     }
 }
