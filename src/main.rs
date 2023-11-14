@@ -104,7 +104,6 @@ fn main() {
         let user_input = Command::read_user_input();
         let parsed_input = Command::parse_user_input(&user_input);
         let (command, args) = Command::identify_args(parsed_input);
-
         Command::execute_command(&command, args, &commands);
     }
 }
