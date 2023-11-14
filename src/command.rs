@@ -85,7 +85,12 @@ impl Command {
             Self::command_action(args, &fm, cmd);
         } else if command == "exit" {
             process::exit(0);
-        } 
+        } else if command == "help" {
+            for cmd in commands {
+                print!("{}, ", cmd.command);
+            }
+            print!("\n")
+        }
         else {
             println!("Command not found");
         }
