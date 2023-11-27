@@ -1,27 +1,22 @@
 use std::{io, process};
 use crate::manager::{FileManager, Operations};
 
-//type CommandAction = fn(&FileManager, &str) -> io::Result<()>;
-type CommandAction = Box<dyn Fn(&FileManager, Vec<String>) -> io::Result<()>>;
-pub struct Command {
-    pub name: String,
-    pub command: String,
-    pub args: (Vec<String>, bool),
-    pub description: String,
-    pub action: CommandAction,
+pub enum Command {
+    List(String),               // ("<directory>")
+    CreateFile(String),         // ("<file name>")
+    CreateDirectory(String),    // ("<directory name>")
+    ReadFile(String),           // ("<file name>")
+    DeleteFile(String),         // ("<file name>")
+    DeleteDirectory(String),    // ("<directory name>")
+    ChangeDirectory(String),    // ("<directory name>")
+    WriteFile(String, String),  // ("<file name>", "<content>")
+    CopyFile(String, String),   // ("<file name>", "<destination>")
+    RenameOrMoveFile(String, String), // ("<file name>", "<new file name>")
+    Exit,
+    Help,
 }
 
 impl Command {
-    pub fn new(name: String, command: String, args: (Vec<String>, bool), description: String, action: CommandAction) -> Self {
-        Command {
-            name,
-            command,
-            args,
-            description,
-            action,
-        }
-    }
-
     /// Reads a line of user input from the standard input.
     ///
     /// # Returns
@@ -64,56 +59,22 @@ impl Command {
         (command, args)
     }
 
-    /// Executes a command with the given arguments and Command instances.
-    ///
-    /// # Arguments
-    ///
-    /// * `command` - A string representing the command to be executed.
-    /// * `args` - A vector of strings representing the command arguments.
-    /// * `commands` - A reference to a vector of Command instances.
-    ///
-    pub fn execute_command(command: &str, args: Vec<String>, commands: &Vec<Command>) {
-        let fm = FileManager::new();
-        if let Some(cmd) = commands.iter().find(|cmd| cmd.command == command) {
-            let (expected_args, need_args) = &cmd.args;
-            if *need_args {
-                if args.len() != expected_args.len() {
-                    eprintln!("Usage: {} {}", cmd.command, expected_args.join(" "));
-                    return;
-                }
-            }
-            Self::command_action(args, &fm, cmd);
-        } else if command == "exit" {
-            process::exit(0);
-        } else if command == "help" {
-            for cmd in commands {
-                print!("{}, ", cmd.command);
-            }
-            print!("\n")
-        }
-        else {
-            println!("Command not found");
-        }
-    }
-
-    /// Executes a command with the given arguments, FileManager instance, and Command.
-    ///
-    /// # Arguments
-    ///
-    /// * `args` - A vector of strings representing the command arguments.
-    /// * `fm` - A reference to a FileManager instance.
-    /// * `cmd` - A reference to a Command instance.
-    ///
-    fn command_action(mut args: Vec<String>, fm: &FileManager, cmd: &Command) {
-        if args.len() < 1 {
-            args.push("./".to_string());
-        }
-        match (cmd.action)(&fm, args) {
-            Ok(_) => {
-                //println!("Command executed successfully");
-            }
-            Err(err) => {
-                eprintln!("Command failed: {}", err);
+    pub fn execute_command(command: Command, fm: &FileManager) -> io::Result<()> {
+        match command {
+            Command::List(directory) => FileManager::list_files(fm, &directory),
+            Command::CreateFile(file_name) => FileManager::create_file(fm, &file_name),
+            Command::CreateDirectory(directory_name) => FileManager::create_directory(fm, &directory_name),
+            Command::ReadFile(file_name) => FileManager::read_file(fm, &file_name),
+            Command::DeleteFile(file_name) => FileManager::delete_file(fm, &file_name),
+            Command::DeleteDirectory(directory_name) => FileManager::delete_directory(fm, &directory_name),
+            Command::ChangeDirectory(directory_name) => FileManager::change_directory(fm, &directory_name),
+            Command::WriteFile(file_name, content) => FileManager::write_file(fm, &file_name, &content),
+            Command::CopyFile(file_name, destination) => FileManager::copy_file(fm, &file_name, &destination),
+            Command::RenameOrMoveFile(old_name, new_name) => FileManager::rename_or_move_file(fm, &old_name, &new_name),
+            Command::Exit => process::exit(0),
+            Command::Help => {
+                println!("Help");
+                Ok(())
             }
         }
     }
