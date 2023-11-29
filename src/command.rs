@@ -1,7 +1,6 @@
 use std::{io, process};
 use crate::manager::{FileManager, Operations};
 
-//type CommandAction = fn(&FileManager, &str) -> io::Result<()>;
 type CommandAction = Box<dyn Fn(&FileManager, Vec<String>) -> io::Result<()>>;
 pub struct Command {
     pub name: String,
@@ -44,7 +43,7 @@ impl Command {
     /// A `Vec<String>` containing the parsed words.
     ///
     pub fn parse_user_input(input: &str) -> Vec<String> {
-        input.trim().split_whitespace().map(String::from).collect()
+        input.split_whitespace().map(String::from).collect()
     }
 
     /// Identifies the command and its arguments from a vector of words.
@@ -64,38 +63,16 @@ impl Command {
         (command, args)
     }
 
-    /// Executes a command with the given arguments and Command instances.
-    ///
-    /// # Arguments
-    ///
-    /// * `command` - A string representing the command to be executed.
-    /// * `args` - A vector of strings representing the command arguments.
-    /// * `commands` - A reference to a vector of Command instances.
-    ///
-    pub fn execute_command(command: &str, args: Vec<String>, commands: &Vec<Command>) {
+    
+    pub fn execute_command(args: Vec<String>, command: Command) {
         let fm = FileManager::new();
-        if let Some(cmd) = commands.iter().find(|cmd| cmd.command == command) {
-            let (expected_args, need_args) = &cmd.args;
-            if *need_args {
-                if args.len() != expected_args.len() {
-                    eprintln!("Usage: {} {}", cmd.command, expected_args.join(" "));
-                    return;
-                }
-            }
-            Self::command_action(args, &fm, cmd);
-        } else if command == "exit" {
-            process::exit(0);
-        } else if command == "help" {
-            for cmd in commands {
-                print!("{}, ", cmd.command);
-            }
-            print!("\n")
+        let (expected_args, need_args) = &command.args;
+        if *need_args && args.len() != expected_args.len() {
+            eprintln!("Usage: {} {}", command.command, expected_args.join(" "));
+            return;
         }
-        else {
-            println!("Command not found");
-        }
+        Self::command_action(args, &fm, &command);
     }
-
     /// Executes a command with the given arguments, FileManager instance, and Command.
     ///
     /// # Arguments
@@ -105,16 +82,97 @@ impl Command {
     /// * `cmd` - A reference to a Command instance.
     ///
     fn command_action(mut args: Vec<String>, fm: &FileManager, cmd: &Command) {
-        if args.len() < 1 {
+        if args.is_empty() {
             args.push("./".to_string());
         }
-        match (cmd.action)(&fm, args) {
-            Ok(_) => {
-                //println!("Command executed successfully");
-            }
+        match (cmd.action)(fm, args) {
+            Ok(_) => {}
             Err(err) => {
                 eprintln!("Command failed: {}", err);
             }
+        }
+    }
+    pub fn load_command(cmd: &str) -> Option<Command> {
+        match cmd {
+            "ls" => Some(Command {
+                name: "List".to_string(),
+                command: "ls".to_string(),
+                args: (vec![String::from("<directory>")], false),
+                description: "Command to list all directory or specific one".to_string(),
+                action: Box::new(|fm, args| FileManager::list_files(fm, &args[0])),
+            }),
+            "file" => Some(Command {
+                name: "Create File".to_string(),
+                command: "file".to_string(),
+                args: (vec![String::from("<file name>")], true),
+                description: "Command to create a file".to_string(),
+                action: Box::new(|fm, args| FileManager::create_file(fm, &args[0])),
+            }),
+            "mkdir" => Some(Command {
+                name: "Create Directory".to_string(),
+                command: "mkdir".to_string(),
+                args: (vec![String::from("<directory name>")], true),
+                description: "Command to create a directory".to_string(),
+                action: Box::new(|fm, args| FileManager::create_directory(fm, &args[0])),
+            }),
+            "read" => Some(Command {
+                name: "Read File".to_string(),
+                command: "read".to_string(),
+                args: (vec![String::from("<file name>")], true),
+                description: "Command to read a file".to_string(),
+                action: Box::new(|fm, args| FileManager::read_file(fm, &args[0])),
+            }),
+            "rm" => Some(Command {
+                name: "Delete File".to_string(),
+                command: "rm".to_string(),
+                args: (vec![String::from("<file name>")], true),
+                description: "Command to delete a file".to_string(),
+                action: Box::new(|fm, args| FileManager::delete_file(fm, &args[0])),
+            }),
+            "rmdir" => Some(Command {
+                name: "Delete Directory".to_string(),
+                command: "rmdir".to_string(),
+                args: (vec![String::from("<directory name>")], true),
+                description: "Command to delete a directory".to_string(),
+                action: Box::new(|fm, args| FileManager::delete_directory(fm, &args[0])),
+            }),
+            "cd" => Some(Command {
+                name: "Change Directory".to_string(),
+                command: "cd".to_string(),
+                args: (vec![String::from("<directory name>")], true),
+                description: "Command to change the current directory".to_string(),
+                action: Box::new(|fm, args| FileManager::change_directory(fm, &args[0])),
+            }),
+            "write" => Some(Command {
+                name: "Write file".to_string(),
+                command: "write".to_string(),
+                args: (vec![String::from("<file name>"), String::from("<content>")], true),
+                description: "Command to write in a file".to_string(),
+                action: Box::new(|fm, args| FileManager::write_file(fm, &args[0], &args[1])),
+            }),
+            "cp" => Some(Command {
+                name: "Copy file".to_string(),
+                command: "cp".to_string(),
+                args: (vec![String::from("<file name>"), String::from("<destination>")], true),
+                description: "Command to copy a file".to_string(),
+                action: Box::new(|fm, args| FileManager::copy_file(fm, &args[0], &args[1])),
+            }),
+            "mv" => Some(Command {
+                name: "Rename or Move".to_string(),
+                command: "mv".to_string(),
+                args: (vec![String::from("<file name>"), String::from("<new file name>")], true),
+                description: "Command to rename or move a file".to_string(),
+                action: Box::new(|fm, args| FileManager::rename_or_move_file(fm, &args[0], &args[1])),
+            }),
+            "help" => {
+                println!("Available commands:\n ls, file, mkdir, read, rm, rmdir, cd, write, cp, mv");
+                None
+            },
+            "exit" => process::exit(0),
+            _ => {
+                eprintln!("Command not found: {}", cmd);
+                None
+            } 
         }
     }
 }
